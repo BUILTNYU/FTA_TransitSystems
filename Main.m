@@ -4,11 +4,14 @@
 % Please locate all MATLAB codes and dataset in the same folder.
 
 % 1. Select demand level and system
-demand=400; % demand level (80 pax/h / 200 pax/h / 400 pax/h)
-system=1;   % system indiator (1: fixed route/2: flexible route/3: door-to-door service)
+demand=200; % demand level (80 pax/h / 200 pax/h / 400 pax/h)
+system=3;   % system indiator (1: fixed route/2: flexible route/3: door-to-door service)
 
 % 2. Simulation parameters 
-% 2.1. Define system-specific parameters first
+% 2.1. Give route length first
+rtlength=8.2;	% length of route (L) (one-way)
+
+% 2.2. Define system-specific parameters
 if system==1 % fixed route
     triptime=5280;	% one-way cycle time: 5280 sec (88 min) for fixed route
     numVeh=15;      % required fleet size (V) for maintaining frequency of 5 veh/h
@@ -29,12 +32,14 @@ elseif system==3 % door-to-door service
     numVeh=40;      % double fleet size than flexible route instead of reducing capacity per vehicle
     numOpVeh=numVeh;     % number of currently operating vehicles
     vehcap=20;      % vehicle capacity (mini buses)
-    nChks=8;        % number of intermediate checkpoints
-    C=nChks+2;      % number of all checkpoints including terminals
-    ChkPnts=[(1:C)',((1:C)'-1)*(rtlength/(C-1)),zeros(C,1)];   % checkpoint information (id,x,y)
+    nDpts=8;        % number of intermediate checkpoints
+    D=nDpts+2;      % number of all checkpoints including terminals
+    Depots=[(1:D)',((1:D)'-1)*(rtlength/(D-1)),zeros(D,1)];   % checkpoint information (id,x,y)
+    maxdelay=2;     % maximum detour delay (zeta_t)(ratio compared to direct travel time)
+    maxwait=1800;   % maximum wait time (zeta_w)(sec)
 end
 
-% 2.2. Define common parameters
+% 2.3. Define common parameters 
 rtlength=8.2;	% length of route (L) (one-way)
 tmst=1;         % time step (tau): 1 sec
 ophr=4;         % system operation hour (hr)
@@ -91,9 +96,9 @@ load(sprintf('Pool_%d_Random.mat',demand));   % load demand dataset
 
 % 4. Run simulation for chosen system
 if system==1 % fixed route
-    [VEH,PAX]=FixedRoute(Pax,numNewPax,rtlength,tmst,ophr,triptime,distcnv,dwellt,warmupt,T,numOpVeh,numVeh,vehcap,vehhdwy,vehVmph,vehVmps,Stops,expttc,walkspeed,walklimit,VRange,HRange,alpha,beta,gamma);
+    [VEH,PAX]=FixedRoute(Pax,numNewPax,rtlength,tmst,triptime,distcnv,dwellt,warmupt,T,numOpVeh,numVeh,vehcap,vehhdwy,vehVmph,vehVmps,Stops,expttc,walkspeed,walklimit,VRange,HRange,alpha,beta,gamma);
 elseif system==2 % flexible route
-%     [A]=FlexibleRoute(B);
+	
 elseif system==3 % door-to-door service
-%     [A]=DtD(B);
+    [VEH,PAX]=DtD(Pax,numNewPax,rtlength,tmst,distcnv,dwellt,T,numOpVeh,numVeh,vehcap,vehVmph,expttc,alpha,beta,maxdelay,maxwait,D,Depots);
 end

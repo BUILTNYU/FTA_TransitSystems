@@ -26,35 +26,6 @@ for i=cumNumPax1+1:cumNumPax2
     IncomingPax(i-cumNumPax1).O=[IP(1,1:3),i,3,dwellt,1];
     IncomingPax(i-cumNumPax1).D=[IP(1,4:6),i,3,dwellt,-1];
     
-%     if md1<=walklimit && md2<=walklimit && mi1~=mi2
-%         IP(1,1)=mi1;
-%         IP(1,4)=mi2;
-%         IncomingPax(i-cumNumPax1).type=1;
-%     elseif md1<=walklimit && md2>walklimit
-%         IP(1,1)=mi1;
-%         IncomingPax(i-cumNumPax1).type=2;
-%     elseif md1>walklimit && md2<=walklimit
-%         IP(1,4)=mi2;
-%         IncomingPax(i-cumNumPax1).type=3;
-%     else
-%         IncomingPax(i-cumNumPax1).type=4;
-%     end
-
-%     % O,D: [StopID,X,Y,StopType,PaxID,svct,numPax]
-%     if IncomingPax(i-cumNumPax1).type==1
-%         IncomingPax(i-cumNumPax1).O=[IP(1,1:3),i,3,dwellt,1];
-%         IncomingPax(i-cumNumPax1).D=[IP(1,4:6),i,3,dwellt,-1];
-%     elseif IncomingPax(i-cumNumPax1).type==2
-%         IncomingPax(i-cumNumPax1).O=[IP(1,1:3),i,3,dwellt,1];
-%         IncomingPax(i-cumNumPax1).D=[2*i+100,IP(1,5:6),i,2,dwellt,-1];
-%     elseif IncomingPax(i-cumNumPax1).type==3
-%         IncomingPax(i-cumNumPax1).O=[2*i+99,IP(1,2:3),i,1,dwellt,1];
-%         IncomingPax(i-cumNumPax1).D=[IP(1,4:6),i,3,dwellt,-1];
-%     elseif IncomingPax(i-cumNumPax1).type==4
-%         IncomingPax(i-cumNumPax1).O=[2*i+99,IP(1,2:3),i,1,dwellt,1];
-%         IncomingPax(i-cumNumPax1).D=[2*i+100,IP(1,5:6),i,2,dwellt,-1];
-%     end
-    
     IncomingPax(i-cumNumPax1).hDist=IP(1,7);        % horizontal distance
     IncomingPax(i-cumNumPax1).vDist=IP(1,8);        % vertical distance
     IncomingPax(i-cumNumPax1).onbrd=0;              % rejection indicator

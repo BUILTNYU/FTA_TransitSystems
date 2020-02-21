@@ -1,4 +1,4 @@
-function [VEH,PAX]=FixedRoute(Pax,numNewPax,rtlength,tmst,ophr,triptime,distcnv,dwellt,warmupt,T,numOpVeh,numVeh,vehcap,vehhdwy,vehVmph,vehVmps,Stops,expttc,walkspeed,walklimit,VRange,HRange,alpha,beta,gamma)
+function [VEH,PAX]=FixedRoute(Pax,numNewPax,rtlength,tmst,triptime,distcnv,dwellt,warmupt,T,numOpVeh,numVeh,vehcap,vehhdwy,vehVmph,vehVmps,Stops,expttc,walkspeed,walklimit,VRange,HRange,alpha,beta,gamma)
 % % Basic factors
 % % 1 unit in coordination = 1 mi
 % rtlength=8.2;    % length of route (one-way)
@@ -55,9 +55,9 @@ for i=1:numVeh
     VEH(i).drctn=1;         % vehicle direction (1: rightward, 2: leftward)
     VEH(i).dispatch=vehhdwy*(i-1);      % time when vehicle is dispatched
     
-    % rightward route information: [StopID,X,Y,departure time,stop type index (3 for fixed stops),dwell time,net change of number of passenger]
+    % route information: [StopID,X,Y,departure time,stop type index (3 for fixed stops),dwell time,net change of number of passenger]
     S=size(Stops,1);    % total number of stops
-    VEH(i).Rt1=[Stops,zeros(S,1),3*ones(S,1),dwellt*ones(S,1),zeros(S,1)];
+    VEH(i).Rt1=[Stops,zeros(S,1),3*ones(S,1),dwellt*ones(S,1),zeros(S,1)]; % rightward route 
     VEH(i).Rt2=flipud(VEH(i).Rt1);  % leftward route: flip rightward route
     VEH(i).RT=[];           % prepare archive for routes
 %     VEH(i).rtseq=0;                 % current sequence of route
@@ -75,10 +75,10 @@ for i=1:numVeh
     % arranged pax: [PaxID,OStopID,DStopID,Boarding Index(0:arranged,1:on-board,2:processed (alighted))]
     VEH(i).Pax1=zeros(1,6);     % empty at the beginning (passengers with rightward route)
     VEH(i).Pax2=VEH(i).Pax1;    % empty at the beginning (passengers with leftward route)
-    VEH(i).PaxServed=zeros(1,6);    % prepare archive for routes
+    VEH(i).PaxServed=zeros(1,6);    % prepare archive for passengers
 %     VEH(i).rmnCP=C;                 % # of remained checkpoints to stop
     
-    VEH(i).Cost1=[0;ones(S-1,1)*rtlength/(S-1)/(VEH(i).v/3600)];    % required costs on sections on current route
+    VEH(i).Cost1=[0;ones(S-1,1)*rtlength/(S-1)/(VEH(i).v/3600)];    % required segment travel time on current route
     VEH(i).Cost2=VEH(i).Cost1;  % required costs is the same for both direction if stops are evenly distributed
     
     % 
@@ -95,7 +95,7 @@ for i=1:numVeh
     VEH(i).Rwt=[0,0];             % actual wait time of arranged pax
     VEH(i).WalkT1=[0,0,0,0,0];           % elements of travel time of arranged pax (id,owalkt,dwalkt,waitt,ridet)
     VEH(i).WalkT2=[0,0,0,0,0];           
-    VEH(i).stayt=0;                 % remained time for vehicle to stay at node
+    VEH(i).stayt=0;                 % remaining time for vehicle to stay at node
     VEH(i).TimeV=[0,0,0,0,0,0,0,0,0,0,0];   % Time variables (PaxID,request time,Drtt,Exwt0,Extt0,Exwt,Extt,Rwt,Rtt)
 %     VEH(i).SlackArch=[0,0,0,0,0];     % archived slack time [t, Chkpnt, initial, available]
     VEH(i).PM=0;                    % performance measure
@@ -107,9 +107,9 @@ CostTemp=VEH(1).Cost1;  % template for initial cost setting
 % prepare passenger data structure
 cumNumPax=zeros(T,1);   % cumulative number of passenger requests
 PAX=struct('id',[],'type',[],'O',[],'D',[],'hDist',[],'vDist',[],'onbrd',[],'drtt',[],'extt',[],'rtt',[],'exwt',[],'rwt',[],'btime',[],'atime',[],'veh',[]);
-IncomingPax=struct;
+% IncomingPax=struct;
 
-K=zeros(size(Pax,1),1);   % chosen vehicle for customers at time step t
+K=zeros(size(Pax,1),1);   % chosen vehicle for customers
 
 % Conduct simulation
 for t = 1:T
@@ -181,7 +181,7 @@ for t = 1:T
                 % update vehicle and route information
                 if PAX(j).O(1,2)<PAX(j).D(1,2)
                     VEH(Kj).Rt1=CAND(Kj).Rt;            % route information
-                    VEH(Kj).Cost1=CAND(Kj).RtCost(:,1); % section travel time
+                    VEH(Kj).Cost1=CAND(Kj).RtCost(:,1); % segment travel time
                     VEH(Kj).Pax1=CAND(Kj).Pax;          % passenger information
                     VEH(Kj).WalkT1=CAND(Kj).WalkT;      % walking time (including wait and in-vehicle time)
                 else
@@ -220,11 +220,10 @@ for t = 1:T
                 
 %                 VEH(Kj).Cost=CAND(Kj).RtCost(:,1);
 %                 VEH(Kj).ChkCost=CAND(Kj).ChkCost;
-                VEH(Kj).PM=CAND(Kj).perform;
-
-                VEH(Kj).Exwt=CAND(Kj).Exwt;
-                VEH(Kj).Extt=CAND(Kj).Extt;
-                VEH(Kj).Rwt=[VEH(Kj).Rwt;j,-CAND(Kj).WalkT(end,2)+dwellt];
+                VEH(Kj).PM=CAND(Kj).perform;    % performance measure increment
+                VEH(Kj).Exwt=CAND(Kj).Exwt;     % expected wait time
+                VEH(Kj).Extt=CAND(Kj).Extt;     % expected in-vehicle time
+                VEH(Kj).Rwt=[VEH(Kj).Rwt;j,-CAND(Kj).WalkT(end,2)+dwellt];  % append new passenger to array tracking real wait time
                 
                 % update passenger information
                 PAX(j).veh=Kj;  % vehicle to which passenger is assigned
@@ -248,7 +247,7 @@ for t = 1:T
     end
     
     % vehicle movement according to designated routes
-    VEHI=struct;    % temporary storage for vehicle information
+%     VEHI=struct;    % temporary storage for vehicle information
     for i=1:numOpVeh
         if t>VEH(i).dispatch && VEH(i).stayt>0  % vehicle is operating and staying at a stop
             [VEHI] = Dwell_Fix(VEH(i),tmst,distcnv,t);  % process vehicle information when dwelling
@@ -264,6 +263,7 @@ for t = 1:T
         numOpVeh=min(numVeh,numOpVeh+1);
     end
     
+    % error check (vehicle capacity and load)
     for i=1:numVeh
         if VEH(i).load>VEH(i).q
             t
@@ -273,6 +273,7 @@ for t = 1:T
     end
 end
 
+% process simulation outputs
 np=0;
 MaxLoad=zeros(numVeh,1);
 AvgMsr=zeros(numVeh,5);

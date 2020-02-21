@@ -1,15 +1,20 @@
-function [CAND]=Insert_Fix(VEH,PAX,alpha,beta,gamma,C,walkspeed,rtlength,t)
+function [CAND]=Insert_Fix(VEH,PAX,alpha,beta,gamma,S,walkspeed,rtlength,t)
 % % INPUTS % %
-
-
+% VEH: vehicle data structure
+% PAX: passegner data structure
+% alpha: weight for in-vehicle time
+% beta: weight for wait time
+% gamma weight for walking time
+% S: number of stops
+% walkspeed: passenger walking speed
+% rtlength: route length
+% t: current time
 
 % % OUTPUTS % %
-
+% CAND: candidate route data structure
 
 
 % input vehicle and passenger information
-vehcap=VEH.q;   % capacity
-vehspeed=VEH.v; % vehicle speed (mph)
 CAND=struct;    % prepare data structure for candidate route
 if PAX.O(1,2)<PAX.D(1,2) % passenger trip is rightward
     RtPrsnt=VEH.Rt1;    % current route
@@ -26,7 +31,7 @@ else % trip is leftward
 end
 
 % find potential stops which passengers can reach from their O and to their D
-StopMat=[floor(PAX.O(1,2)/(rtlength/(C-1))),ceil(PAX.O(1,2)/(rtlength/(C-1)));floor(PAX.D(1,2)/(rtlength/(C-1))),ceil(PAX.D(1,2)/(rtlength/(C-1)))]+1;
+StopMat=[floor(PAX.O(1,2)/(rtlength/(S-1))),ceil(PAX.O(1,2)/(rtlength/(S-1)));floor(PAX.D(1,2)/(rtlength/(S-1))),ceil(PAX.D(1,2)/(rtlength/(S-1)))]+1;
 if drctn==2 % horiznotal flip if route is leftward
     StopMat=fliplr(StopMat); 
 end
@@ -59,7 +64,7 @@ if PerfArray(1,3)<Inf
                 % wait time validation
                 waitt=RtPrsnt(RtPrsnt(:,1)==StopMat(1,i),4)-t-owalkt;   % wait time at StopMat(1,i): vehicle departure time - current time - walking time
                 if waitt>=0
-                    ivt=abs(StopMat(2,j)-StopMat(1,i))*PAX.O(1,6)+abs(StopMat(2,j)-StopMat(1,i))*(rtlength/(C-1))/vehspeed*3600; % ride time from StopMat(1,i) to StopMat(2,j)
+                    ivt=abs(StopMat(2,j)-StopMat(1,i))*PAX.O(1,6)+abs(StopMat(2,j)-StopMat(1,i))*(rtlength/(S-1))/VEH.v*3600; % ride time from StopMat(1,i) to StopMat(2,j)
                     dwalkt=GridDist(RtPrsnt(RtPrsnt(:,1)==StopMat(2,j),2:3),PAX.D(1,2:3))/walkspeed*3600; % walk time from StopMat(2,j) to real D
 %                     Load=0;
                     tempPM = alpha*ivt + beta*waitt + gamma*(owalkt+dwalkt);    % performance measure: linear combination of in-vehicle, wait, and walking time
@@ -132,7 +137,7 @@ else
 end
 
 % check feasibility (vehicle capacity)
-if max(Load)<=vehcap % assign final output if feasible
+if max(Load)<=VEH.q % assign final output if feasible
     Aroute=RtInfo(:,2:8);   % route information
     ARouteCost=RtCost;      % section travel time 
     ACumRouteCost=CumCost;  % cumulative section travel time
@@ -149,7 +154,7 @@ if max(Load)<=vehcap % assign final output if feasible
             EXTT(m,1:2)=[PaxInfo(m,1),Aroute(Aroute(:,1)==PaxInfo(m,6),4)-t-PAX.D(1,6)];    % departure time of D stop - current time - dwell time at D stop
         end
     end
-    pfmcmsr=alpha*sum(EXTT(:,2))+beta*sum(EXWT(:,2));
+    pfmcmsr=alpha*sum(EXTT(:,2))+beta*sum(EXWT(:,2)); % walking time is not included because it is fixed
     Aload=Load;
 else % assign null result if capacity condition violated
     Aroute=[];
@@ -163,13 +168,13 @@ else % assign null result if capacity condition violated
 end
 
 % arrange final outputs to candidate route data structure
-CAND.Rt=Aroute;
-CAND.RtCost=[ARouteCost,ACumRouteCost];
-CAND.perform=pfmcmsr;
-CAND.Exwt=EXWT;
-CAND.Extt=EXTT;
-CAND.WalkT=WalkT;
-CAND.Pax=PaxInfo;
+CAND.Rt=Aroute;         % route
+CAND.RtCost=[ARouteCost,ACumRouteCost]; % segment travel time and its cumulative time
+CAND.perform=pfmcmsr;   % performance measure
+CAND.Exwt=EXWT;         % expected wait time
+CAND.Extt=EXTT;         % expected in-vehicle time
+CAND.WalkT=WalkT;       % walking time (including wait and in-vehicle time)
+CAND.Pax=PaxInfo;       % passenger information
 
 % simulation error check
 if CAND.perform<0 % performance measure is negative

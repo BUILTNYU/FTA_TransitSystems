@@ -1,4 +1,4 @@
-function [VEH,PAX,numServedPax]=VehBrdAlght_Fix(VEH,tmst,t,distcnv,PAX,numServedPax,C,Stops,triptime,CostTemp)
+function [VEH,PAX,numServedPax]=VehBrdAlght_Fix(VEH,tmst,t,distcnv,PAX,numServedPax,S,Stops,triptime,CostTemp)
 % % INPUTS % %
 % VEH: vehicle data structure
 % tmst: length of time step
@@ -6,7 +6,7 @@ function [VEH,PAX,numServedPax]=VehBrdAlght_Fix(VEH,tmst,t,distcnv,PAX,numServed
 % distcnv: distance conversion factor
 % PAX: passenger data structure
 % numServedPax: number of passnegers served in this time step
-% C: number of stops
+% S: number of stops
 % Stops: stop information
 % triptime: one-way cycle time
 % CostTemp: template for segment travel time
@@ -16,7 +16,7 @@ function [VEH,PAX,numServedPax]=VehBrdAlght_Fix(VEH,tmst,t,distcnv,PAX,numServed
 % PAX: passenger data structure
 % numServedPax: number of passengers served in this time step
 
-% input vehicle and passenger information
+% recall vehicle and passenger information
 if VEH.drctn==1
     RtPrsnt=VEH.Rt1;    % current route
     Pax=VEH.Pax1;       % current engaged passenger
@@ -96,7 +96,7 @@ if treq<=tmst % vehicle will arrive at the next stop in this time step
     end
 
     % update information regarding terminal arrival
-    if RtPrsnt(1,1)==1 || RtPrsnt(1,1)==C 
+    if RtPrsnt(1,1)==1 || RtPrsnt(1,1)==S 
         % error check if vehicle load is not zero though it arrived at terminal
         if VEH.load~=0
             t
@@ -105,18 +105,18 @@ if treq<=tmst % vehicle will arrive at the next stop in this time step
         % reset current route to initial status
         if VEH.drctn==1     % current vehicle direction: rightward
             VEH.drctn=2;    % divert vehicle direction to leftward
-            VEH.Rt1=[Stops,zeros(C,1),3*ones(C,1),20*ones(C,1),zeros(C,1)]; % reset rightward route
+            VEH.Rt1=[Stops,zeros(S,1),3*ones(S,1),20*ones(S,1),zeros(S,1)]; % reset rightward route
             VEH.Rt1(1,4)=VEH.Rt2(end,4);    % set the same departure time for last stop of leftward route and 1st stop of rightward route
-            for j=1:C-1
-                VEH.Rt1(j+1,4)=triptime/(C-1)*j+VEH.Rt1(1,4);   % set up timetable
+            for j=1:S-1
+                VEH.Rt1(j+1,4)=triptime/(S-1)*j+VEH.Rt1(1,4);   % set up timetable
             end
             VEH.Cost1=CostTemp; % use template for segment travel time
         elseif VEH.drctn==2     % current vehicle direction: leftward
             VEH.drctn=1;        % divert vehicle direction to rightward
-            VEH.Rt2=[flipud(Stops),zeros(C,1),3*ones(C,1),20*ones(C,1),zeros(C,1)]; % reset leftward route
+            VEH.Rt2=[flipud(Stops),zeros(S,1),3*ones(S,1),20*ones(S,1),zeros(S,1)]; % reset leftward route
             VEH.Rt2(1,4)=VEH.Rt1(end,4);    % set the same departure time for last stop of leftward route and 1st stop of rightward route
-            for j=1:C-1
-                VEH.Rt2(j+1,4)=triptime/(C-1)*j+VEH.Rt2(1,4);   % set up timetable
+            for j=1:S-1
+                VEH.Rt2(j+1,4)=triptime/(S-1)*j+VEH.Rt2(1,4);   % set up timetable
             end
             VEH.Cost2=CostTemp; % use template for segment travel time
         end
@@ -129,17 +129,17 @@ if treq<=tmst % vehicle will arrive at the next stop in this time step
     % update exwt and extt in real-time
     for i=1:size(VEH.TimeV,1)
         if VEH.TimeV(i,6)>0
-            VEH.TimeV(i,6)=VEH.TimeV(i,6)+tmst-treq;
+            VEH.TimeV(i,6)=VEH.TimeV(i,6)-(tmst-treq);
         else
             if VEH.TimeV(i,7)>0
-                VEH.TimeV(i,7)=VEH.TimeV(i,7)+tmst-treq;
+                VEH.TimeV(i,7)=VEH.TimeV(i,7)-(tmst-treq);
             end
         end
     end
 else % vehicle will keep moving
-    VEH.LocNow=MidP;         % updated veh location
-    VEH.DistLeft=[dX,dY];    % Distance left
-
+    VEH.LocNow=MidP;         % updated vehicle location
+    VEH.DistLeft=[dX,dY];    % distance to next stop
+    
     % update Cost, Rtt, Rwt
     if VEH.drctn==1
         VEH.Cost1(1,1)=VEH.Cost1(1,1)-tmst;

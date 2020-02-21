@@ -10,7 +10,7 @@ function [VEH]=Dwell_Fix(VEH,tmst,distcnv,t)
 
 tmseg=VEH.stayt-tmst;   % remainder of staying time after a time step reduced
 
-% input vehicle and passenger information
+% recall vehicle and passenger information
 if VEH.drctn==1
     RtPrsnt=VEH.Rt1;    % current route
     RtCost=VEH.Cost1;   % current segment travel time
@@ -85,11 +85,6 @@ else % staying time is exhausted wihtin this time step and vehicle leaves
     
     % estimate the future vehicle location after leaving 
     [MidP,dX,dY,~]=Navigate(RtPrsnt(2,2:3),VEH.LocNow,VEH.v,tmseg,distcnv);
-    % outputs
-    % MidP: future location of vehicle after a time step
-    % dX: horizontal distance between E and S
-    % dY: vertical distance between E and S
-    % treq: required time to travel between E and S with given speed v
 
     % update vehicle and route information
     VEH.stayt=0;            % staying time is exhausted
@@ -101,9 +96,9 @@ else % staying time is exhausted wihtin this time step and vehicle leaves
     RtCost(2,1)=RtCost(2,1)+tmseg;  % update the next segment travel time consumed by tmseg 
     RtCost(1,:)=[];                 % delete the segment travel time that vehicle passed through
     if VEH.drctn==1
-        VEH.Rt1=RtPrsnt;    % updated route
-        VEH.Cost1=RtCost;   % updated segment travel time
-        VEH.Pax1=Pax;       % updated engaged passenger information
+        VEH.Rt1=RtPrsnt;    % update route
+        VEH.Cost1=RtCost;   % update segment travel time
+        VEH.Pax1=Pax;       % update engaged passenger information
     else
         VEH.Rt2=RtPrsnt;
         VEH.Cost2=RtCost;
