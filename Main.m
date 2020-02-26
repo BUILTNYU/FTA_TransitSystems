@@ -4,8 +4,8 @@
 % Please locate all MATLAB codes and dataset in the same folder.
 
 % 1. Select demand level and system
-demand=200; % demand level (80 pax/h / 200 pax/h / 400 pax/h)
-system=3;   % system indiator (1: fixed route/2: flexible route/3: door-to-door service)
+demand=400; % demand level (80 pax/h / 200 pax/h / 400 pax/h)
+system=2;   % system indiator (1: fixed route/2: flexible route/3: door-to-door service)
 
 % 2. Simulation parameters 
 % 2.1. Give route length first
@@ -27,12 +27,14 @@ elseif system==2 % flexible route
     nChks=8;        % number of intermediate checkpoints
     C=nChks+2;      % number of all checkpoints including terminals
     ChkPnts=[(1:C)',((1:C)'-1)*(rtlength/(C-1)),zeros(C,1)];   % checkpoint information (id,x,y)
+    maxback=0.25;   % maximum backtracking distacne per checkpoint segment
+    maxwait=720;    % maximum wait time
 elseif system==3 % door-to-door service
     triptime=0;     % there is no cycle for door-to-door service
     numVeh=40;      % double fleet size than flexible route instead of reducing capacity per vehicle
     numOpVeh=numVeh;     % number of currently operating vehicles
     vehcap=20;      % vehicle capacity (mini buses)
-    nDpts=8;        % number of intermediate checkpoints
+    nDpts=18;        % number of intermediate checkpoints
     D=nDpts+2;      % number of all checkpoints including terminals
     Depots=[(1:D)',((1:D)'-1)*(rtlength/(D-1)),zeros(D,1)];   % checkpoint information (id,x,y)
     maxdelay=2;     % maximum detour delay (zeta_t)(ratio compared to direct travel time)
@@ -98,7 +100,7 @@ load(sprintf('Pool_%d_Random.mat',demand));   % load demand dataset
 if system==1 % fixed route
     [VEH,PAX]=FixedRoute(Pax,numNewPax,rtlength,tmst,triptime,distcnv,dwellt,warmupt,T,numOpVeh,numVeh,vehcap,vehhdwy,vehVmph,vehVmps,Stops,expttc,walkspeed,walklimit,VRange,HRange,alpha,beta,gamma);
 elseif system==2 % flexible route
-	
+	[VEH,PAX]=FlexibleRoute(Pax,numNewPax,rtlength,tmst,triptime,distcnv,dwellt,warmupt,T,numOpVeh,numVeh,vehcap,vehhdwy,vehVmph,vehVmps,ChkPnts,expttc,walkspeed,walklimit,VRange,alpha,beta,maxback,maxwait);
 elseif system==3 % door-to-door service
     [VEH,PAX]=DtD(Pax,numNewPax,rtlength,tmst,distcnv,dwellt,T,numOpVeh,numVeh,vehcap,vehVmph,expttc,alpha,beta,maxdelay,maxwait,D,Depots);
 end

@@ -15,8 +15,8 @@ CAND=struct;    % prepare data structure for candidate route
 RtPrsnt=VEH.Rt1;            % current route
 % RtCost=VEH.Cost1;           % current segment travel time
 RtCumCost=VEH.CumCost1;     % current cumulative segment travel time
-Pax=VEH.Pax1;               % current engaged passenger
-WalkT=VEH.WalkT1;           % walking time of current engaged passenger
+Pax=VEH.Pax1;               % currently involved passenger
+WalkT=VEH.WalkT1;           % walking time of currently involved passenger
 
 % candidate route establishment according to current route
 if size(RtPrsnt,1)==1   % if no route is assigned to vehicle (route only with current depot or stop)
@@ -76,7 +76,7 @@ else % there exist a route
             if i<j
                 DistMat(i,j)=1/VEH.v*3600*GridDist(RtInfo(i,3:4),RtInfo(j,3:4));    % calculate distance
             elseif i>j
-                DistMat(i,j)=DistMat(j,i);
+                DistMat(i,j)=DistMat(j,i);  % matrix is symmetric
             end
         end
     end

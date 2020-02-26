@@ -66,7 +66,7 @@ for i=1:numVeh
     for j=1:S
         VEH(i).Rt1(j,4)=(j-1)*rtlength/(S-1)/(VEH(i).v/3600)+j*dwellt+VEH(i).dispatch;  % timetable for stops (Rt1)
     end
-    VEH(i).Rt2(1,4)=VEH(i).Rt1(S,4);
+    VEH(i).Rt2(1,4)=VEH(i).Rt1(S,4);    % departing end of rightward route is the same as departing start of leftward route
     for j=2:S
         VEH(i).Rt2(j,4)=(j-1)*rtlength/(S-1)/(VEH(i).v/3600)+j*dwellt+VEH(i).Rt1(S,4);  % timetable for stops (Rt2)
     end

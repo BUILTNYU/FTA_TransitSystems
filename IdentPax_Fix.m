@@ -1,4 +1,14 @@
 function [IncomingPax]=IdentPax_Fix(cumNumPax2,cumNumPax1,Pax,expttc,dwellt,Stops)
+% % INPUTS % %
+% cumNumPax2: ID of last new passenger in this time step
+% cumNumPax1: ID of first new passenger in this time step
+% Pax: Passenger information
+% expttc: expected travel time cost (inverse of average vehicle speed)
+% dwellt: average dwell time at stop
+% Stops: fixed stop information (ID,x,y)
+
+% % OUTPUTS % %
+% IncomingPax: Passenger data structure
 
 IP=zeros(1,size(Pax,2)-1);  % interim array for passenger information
 IncomingPax=struct;         % prepare data structure

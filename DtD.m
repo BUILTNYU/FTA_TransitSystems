@@ -165,7 +165,7 @@ for t = 1:T
 
     % conduct insertion heuristic and determine the best vehicle to match
     for j=a:b
-        CandRtInfo=zeros(numOpVeh,1);   % prepare array for performance measure for candidate routes
+        CandRtInfo=zeros(numOpVeh,1);   % prepare array for performance measure of candidate routes
         for k=1:numOpVeh % find best vehicle to process new customer
             CAND(k)=Insert_DtD(VEH(k),PAX(j),alpha,beta,t,maxdelay,maxwait);
 %             CandRtInfo(1,k)=k;                   % vehicle number

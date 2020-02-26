@@ -20,8 +20,8 @@ if PAX.O(1,2)<PAX.D(1,2) % passenger trip is rightward
     RtPrsnt=VEH.Rt1;    % current route
     RtCost=VEH.Cost1;   % current segment travel time
     drctn=1;            % current vehicle direction
-    Pax=VEH.Pax1;       % current engaged passenger
-    WalkT=VEH.WalkT1;   % walking time of current engaged passenger
+    Pax=VEH.Pax1;       % currently involved passenger
+    WalkT=VEH.WalkT1;   % walking time of currently involved passenger
 else % trip is leftward
     RtPrsnt=VEH.Rt2;
     RtCost=VEH.Cost2;
@@ -105,15 +105,6 @@ if PerfArray(1,3)<Inf
         q=RtInfo(RtInfo(:,2)==PaxInfo(end,6),1);    % sequence of D stop
         RtInfo(q,8)=RtInfo(q,8)+PAX.D(1,7);         % unload pax        
         
-%         p=1;
-%         while RtInfo(p,2)~=PaxInfo(end,5)
-%             p=p+1;
-%         end
-%         while RtInfo(p,2)~=PaxInfo(end,6)
-%             p=p+1;
-%         end
-%         RtInfo(p,8)=RtInfo(p,8)+PAX.D(1,7); % unload pax
-
         % update vehicle load profile
     %     BRoute=A; % label of existing route
         Load(1,1)=VehLoad+RtInfo(1,8); % initiate load profile
